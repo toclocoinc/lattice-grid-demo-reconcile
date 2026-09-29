@@ -83,7 +83,7 @@ with no grid involved, used to check the grid's own KPI tiles agree with it
 
 ## Run it locally
 
-The page loads Lattice Grid 1.77.0 from the jsDelivr CDN. To try a local build
+The page loads Lattice Grid 1.78.0 from the jsDelivr CDN. To try a local build
 instead, copy the grid's package (`dist/`) to `vendor/` (not part of this
 repository) and open the page with `?local`. Serve the folder with any static
 server, for example:
