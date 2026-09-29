@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Reconcile Two Extracts with Lattice Grid's Audit Mode | Lattice Grid</title>
+        <link rel="icon" href="data:,">
+        <script>
+            // `?theme=dark` puts the whole page, grid included, under data-theme="dark".
+            if (new URLSearchParams(location.search).get('theme') === 'dark') document.documentElement.dataset.theme = 'dark';
+        </script>
+        <script>
+            // Where the library comes from: the published release from the CDN, or with
+            // `?local` a local build from vendor/ (not part of this repository).
+            const LOCAL = new URLSearchParams(location.search).has('local');
+            // Bumped on every deploy: GitHub Pages caches for 10 minutes, so every
+            // same-origin file this page loads carries the stamp to force a fresh fetch.
+            window.STAMP = '20260929a';
+            const LIB = LOCAL ? 'vendor/' : 'https://cdn.jsdelivr.net/npm/@toclocoinc/lattice-grid@1.76.0/';
+            document.write('<link rel="stylesheet" href="' + LIB + 'lattice-grid.min.css">');
+            for (const file of ['lattice-grid.min.js', 'modules/layout.min.js']) {
+                document.write('<script src="' + LIB + file + '"><' + '/script>');
+            }
+            document.write('<script src="app.js?v=' + window.STAMP + '" defer><' + '/script>');
+        </script>
+        <style>
+            body { margin: 0; font: 13px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+                   background: var(--lattice-background, #fff); color: var(--lattice-foreground, #14171a); }
+            .panel { display: flex; flex-direction: column; height: 100%; box-sizing: border-box; padding: 4px 8px; }
+            .panel__head { font-size: 11px; letter-spacing: .04em; text-transform: uppercase;
+                           color: var(--lattice-foreground-muted, #5b6570); padding-bottom: 4px; }
+            .panel__body { flex: 1 1 auto; min-height: 0; position: relative; overflow: auto; }
+            #load-body .panel__body, #table-body .panel__body, #kpis-body .panel__body { overflow: hidden; }
+            .drop-row { display: flex; gap: 10px; height: 100%; align-items: stretch; }
+            .drop { flex: 1 1 0; border: 2px dashed #c7ced4; border-radius: 6px; display: flex;
+                    flex-direction: column; align-items: center; justify-content: center; text-align: center;
+                    padding: 6px; cursor: pointer; font-size: 12px; }
+            .drop.over { border-color: var(--lattice-accent, #1f6feb); background: #f0f6ff; }
+            .drop b { display: block; font-size: 13px; margin-bottom: 2px; }
+            .actions { display: flex; flex-direction: column; gap: 6px; justify-content: center; padding: 0 8px; }
+            .actions button { font: inherit; font-size: 12px; padding: 4px 10px; border: 1px solid #c7ced4;
+                               border-radius: 5px; background: #fff; cursor: pointer; white-space: nowrap; }
+            .actions button:hover { background: #f4f6f7; }
+            #swap-label { font-size: 11px; color: var(--lattice-foreground-muted, #5b6570); }
+            .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+            .tile { border: 1px solid #dfe3e6; border-radius: 6px; padding: 6px 8px; }
+            .tile-title { font-size: 10px; text-transform: uppercase; letter-spacing: .04em;
+                          color: var(--lattice-foreground-muted, #5b6570); }
+            .tile-value { font-size: 20px; font-variant-numeric: tabular-nums; }
+            #footer-body { font-size: 11px; color: var(--lattice-foreground-muted, #5b6570); }
+            #footer-body a { color: var(--lattice-accent, #1f6feb); }
+        </style>
+    </head>
+    <body>
+        <!-- Fixed, generous height rather than 100vh: 30 pinned "removed" rows (struck
+             through beneath the live ones) need ~840px on their own, so the page scrolls
+             rather than squeezing the live rows out of a viewport-sized pane. -->
+        <div id="container" style="height: 1500px"></div>
+        <template id="load-panel">
+            <div class="drop-row">
+                <div class="drop" id="drop-before" tabindex="0" role="button">
+                    <b>Before (last month)</b>drop a .csv/.tsv, or click to choose<div id="before-status"></div>
+                </div>
+                <div class="drop" id="drop-after" tabindex="0" role="button">
+                    <b>After (this month)</b>drop a .csv/.tsv, or click to choose<div id="after-status"></div>
+                </div>
+                <div class="actions">
+                    <button type="button" id="swap-btn">Swap sides</button>
+                    <span id="swap-label">Comparing After against Before</span>
+                    <button type="button" id="exceptions-btn">Only exceptions</button>
+                    <button type="button" id="export-btn">Export exceptions (CSV)</button>
+                </div>
+            </div>
+            <input type="file" id="file-before" accept=".csv,.tsv" hidden>
+            <input type="file" id="file-after" accept=".csv,.tsv" hidden>
+        </template>
+        <template id="footer-panel">
+            Synthetic seeded data, generated by <code>tools/gen-data.mjs</code> (recipe in the README) &mdash;
+            nothing here is a real supplier or invoice, and nothing you drop leaves this browser tab.
+            &middot; Lattice Grid <span id="version"></span>
+        </template>
+        <script>
+            // Bound to toclocoinc.github.io; does nothing anywhere else. localhost never needs a key.
+            LatticeGrid.setLicence('LG1.eyJ2IjoxLCJwIjoibGF0dGljZS1ncmlkIiwidCI6IlRPQ0xPQ08gSW5jIC0gcHVibGljIGRlbW9zIiwiZSI6IjIwMzAtMDEtMDEiLCJkIjpbInRvY2xvY29pbmMuZ2l0aHViLmlvIl19.9De42ua3aCGpiMB6EVRP7Tv-upUlDI-0T07rlSPzvCrsqg8t4YJi7SRnStEpAg48uzmcG7il1fR_TfwkUE7iCA');
+        </script>
+    </body>
+</html>
