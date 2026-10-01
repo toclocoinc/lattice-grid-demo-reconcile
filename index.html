@@ -15,8 +15,8 @@
             const LOCAL = new URLSearchParams(location.search).has('local');
             // Bumped on every deploy: GitHub Pages caches for 10 minutes, so every
             // same-origin file this page loads carries the stamp to force a fresh fetch.
-            window.STAMP = '20261001a-0009';
-            const LIB = LOCAL ? 'vendor/' : 'https://cdn.jsdelivr.net/npm/@toclocoinc/lattice-grid@1.83.0/';
+            window.STAMP = '20261001c-0009';
+            const LIB = LOCAL ? 'vendor/' : 'https://cdn.jsdelivr.net/npm/@toclocoinc/lattice-grid@1.83.1/';
             document.write('<link rel="stylesheet" href="' + LIB + 'lattice-grid.min.css">');
             for (const file of ['lattice-grid.min.js', 'modules/layout.min.js']) {
                 document.write('<script src="' + LIB + file + '"><' + '/script>');
