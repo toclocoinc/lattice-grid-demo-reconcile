@@ -140,6 +140,6 @@ $('#export-btn').addEventListener('click', () => {
     grid.selection.clear();
 });
 // The seeded pair, so the page works with no upload.
-Promise.all(['data/invoices-after.csv', 'data/invoices-before.csv'].map((f) => fetch(f + '?v=' + window.STAMP).then((r) => r.text())))
+Promise.all(['data/invoices-after.csv', 'data/invoices-before.csv'].map((f) => fetch(f + '?v=20261003t' + window.STAMP).then((r) => r.text())))
     .then(([after, before]) => loadAfter(after).then(() => loadBefore(before)));
 window.__demo = { grid, loadBefore, loadAfter, sync, netAmountDelta };

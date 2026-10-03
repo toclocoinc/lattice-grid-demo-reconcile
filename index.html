@@ -16,12 +16,12 @@
             // Bumped on every deploy: GitHub Pages caches for 10 minutes, so every
             // same-origin file this page loads carries the stamp to force a fresh fetch.
             window.STAMP = '20261003c-0009';
-            const LIB = LOCAL ? 'vendor/' : 'https://cdn.jsdelivr.net/npm/@toclocoinc/lattice-grid@1.86.2/';
+            const LIB = LOCAL ? 'vendor/' : 'https://cdn.jsdelivr.net/npm/@toclocoinc/lattice-grid@1.86.3/';
             document.write('<link rel="stylesheet" href="' + LIB + 'lattice-grid.min.css">');
             for (const file of ['lattice-grid.min.js', 'modules/layout.min.js']) {
                 document.write('<script src="' + LIB + file + '"><' + '/script>');
             }
-            document.write('<script src="app.js?v=' + window.STAMP + '" defer><' + '/script>');
+            document.write('<script src="app.js?v=20261003t' + window.STAMP + '" defer><' + '/script>');
         </script>
         <style>
             body { margin: 0; font: 13px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
